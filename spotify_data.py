@@ -6,7 +6,7 @@ import os
 # Spotify credentials from Streamlit secrets
 CLIENT_ID = st.secrets["SPOTIFY_CLIENT_ID"]
 CLIENT_SECRET = st.secrets["SPOTIFY_CLIENT_SECRET"]
-REDIRECT_URI = "https://howtocem-test.streamlit.app/callback"
+REDIRECT_URI = "https://howtocem-test.streamlit.app"
 
 # Use a writable cache location on Streamlit Cloud
 CACHE_PATH = "/tmp/.spotify_cache"
