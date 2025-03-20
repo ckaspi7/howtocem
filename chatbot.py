@@ -206,23 +206,6 @@ def get_linkedin_career_info() -> Dict[str, Any]:
                 "startDate": "2022-01",
                 "endDate": "present", 
                 "description": "GenAI application and ML model development"
-                "careerProgression": [
-                    {
-                        "title": "AI/ML Engineer",
-                        "startDate": "2024-09",
-                        "endDate": "present",
-                    },
-                    {
-                        "title": "Software Developer (GenAI & Chatbot Development)",
-                        "startDate": "2024-04",
-                        "endDate": "2024-09",
-                    },
-                    {
-                        "title": "Engineer-in-Training (GenAI and Automations)",
-                        "startDate": "2022-01",
-                        "endDate": "2024-04",
-                    }
-                ]
             },
             {
                 "title": "Co-Founder",
