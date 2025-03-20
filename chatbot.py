@@ -241,10 +241,15 @@ def check_database_connection():
 def check_spotify_connection():
     try:
         from spotify_data import sp
-        user_info = sp.current_user()
-        return True, f"Connected to Spotify as: {user_info['display_name']}"
+        try:
+            user_info = sp.current_user()
+            return True, f"Connected to Spotify as: {user_info['display_name']}"
+        except Exception as e:
+            return False, f"Spotify API error: {str(e)}"
+    except ImportError as e:
+        return False, f"Spotify module import error: {str(e)}"
     except Exception as e:
-        return False, f"Spotify connection error: {str(e)}"
+        return False, f"Unexpected error with Spotify connection: {str(e)}"
 
 # Create LangGraph for orchestration
 def create_personal_assistant():
