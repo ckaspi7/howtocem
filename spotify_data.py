@@ -53,14 +53,24 @@ def format_top_tracks(top_tracks):
 
 def get_top_artists(limit=10, time_range="medium_term"):
     """Fetches the user's top artists and returns a formatted text output."""
-    results = sp.current_user_top_artists(limit=limit, time_range=time_range)
-    return format_top_artists(results['items'])
-
+    if sp is None:
+        return "Spotify connection not available. Please check authentication."
+        
+    try:
+        results = sp.current_user_top_artists(limit=limit, time_range=time_range)
+        return format_top_artists(results['items'])
+    except Exception as e:
+        return f"Error fetching top artists: {str(e)}"
 
 def get_top_tracks(limit=10, time_range="medium_term"):
     """Fetches the user's top tracks and returns a formatted text output."""
-    results = sp.current_user_top_tracks(limit=limit, time_range=time_range)
-    return format_top_tracks(results['items'])
+    if sp is None:
+        return "Spotify connection not available. Please check authentication."
+    try:
+        results = sp.current_user_top_tracks(limit=limit, time_range=time_range)
+        return format_top_tracks(results['items'])
+    except Exception as e:
+        return f"Error fetching top tracks: {str(e)}"
 
 # Only run the example usage if this file is executed directly (not imported)
 if __name__ == "__main__":
