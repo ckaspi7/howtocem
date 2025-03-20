@@ -92,17 +92,21 @@ def prepare_resume_vectorstore():
         data_dir = "data"
         if not os.path.exists(data_dir):
             os.makedirs(data_dir, exist_ok=True)
+            print(f"Created data directory at {os.path.abspath(data_dir)}")
             
         pdf_path = os.path.join(data_dir, "Cem_Kaspi_Resume.pdf")
         
         # If file doesn't exist, check in the current directory
         if not os.path.exists(pdf_path):
             pdf_path = "Cem_Kaspi_Resume.pdf"
+            print(f"Trying to find resume at {os.path.abspath(pdf_path)}")
             
         if not os.path.exists(pdf_path):
+            print(f"Resume not found at {os.path.abspath(pdf_path)}")
             st.error(f"Resume not found at {pdf_path}")
             return None
-            
+
+        print(f"Found resume at {os.path.abspath(pdf_path)}")
         resume_text = extract_resume_info(pdf_path)
         formatted_resume = format_resume_text(resume_text)
         
@@ -212,6 +216,28 @@ def get_linkedin_career_info() -> Dict[str, Any]:
             }
         ]
     }
+
+# Add this function to check for database connectivity
+def check_database_connection():
+    try:
+        from user_data import get_db_connection
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = cursor.fetchall()
+        conn.close()
+        return True, f"Connected to database. Tables found: {tables}"
+    except Exception as e:
+        return False, f"Database connection error: {str(e)}"
+
+# Add this function to check for Spotify authentication
+def check_spotify_connection():
+    try:
+        from spotify_data import sp
+        user_info = sp.current_user()
+        return True, f"Connected to Spotify as: {user_info['display_name']}"
+    except Exception as e:
+        return False, f"Spotify connection error: {str(e)}"
 
 # Create LangGraph for orchestration
 def create_personal_assistant():
@@ -447,6 +473,13 @@ def main():
                 st.write(f"- Spotify Client Secret set: {has_spotify_secret}")
             except:
                 st.write("- Spotify credentials: Not found in secrets")
+
+            st.write("### Connection Tests")
+            db_connected, db_message = check_database_connection()
+            st.write(f"Database: {'✅' if db_connected else '❌'} {db_message}")
+    
+            spotify_connected, spotify_message = check_spotify_connection()
+            st.write(f"Spotify: {'✅' if spotify_connected else '❌'} {spotify_message}")
     
     # Initialize session state
     if "messages" not in st.session_state:
