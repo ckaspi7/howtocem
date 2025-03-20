@@ -9,29 +9,43 @@ CLIENT_SECRET = st.secrets["SPOTIFY_CLIENT_SECRET"]
 REDIRECT_URI = "https://howtocem-test.streamlit.app"
 
 # Use a writable cache location on Streamlit Cloud
-CACHE_PATH = "/tmp/.spotify_cache"
+# CACHE_PATH = "/tmp/.spotify_cache"
 
-print(f"Spotify cache path: {os.path.abspath(CACHE_PATH)}")
-print(f"Spotify cache exists: {os.path.exists(CACHE_PATH)}")
-print(f"Spotify redirect URI: {REDIRECT_URI}")
-print(f"Spotify client id: {CLIENT_ID}")
+# Set up Spotify authentication
+sp_oauth = SpotifyOAuth(
+    client_id=CLIENT_ID,
+    client_secret=CLIENT_SECRET,
+    redirect_uri=REDIRECT_URI,
+    scope="user-top-read user-library-read"
+)
+
+# Check if the user is authenticated
+token_info = sp_oauth.get_cached_token()
+
+if not token_info:
+    auth_url = sp_oauth.get_authorize_url()
+    st.markdown(f"[Click here to authorize with Spotify]({auth_url})")
+else:
+    access_token = token_info['access_token']
+    sp = spotipy.Spotify(auth=access_token)
+    st.success("Successfully authenticated with Spotify!")
 
 # Authenticate with Spotify
-def authenticate_spotify():
-    try:
-        return spotipy.Spotify(auth_manager=SpotifyOAuth(
-            client_id=CLIENT_ID,
-            client_secret=CLIENT_SECRET,
-            redirect_uri=REDIRECT_URI,
-            scope="user-top-read user-library-read",
-            cache_path=CACHE_PATH,
-            open_browser=False
-        ))
-    except Exception as e:
-        st.error(f"Spotify authentication failed: {e}")
-        return None
+# def authenticate_spotify():
+#     try:
+#         return spotipy.Spotify(auth_manager=SpotifyOAuth(
+#             client_id=CLIENT_ID,
+#             client_secret=CLIENT_SECRET,
+#             redirect_uri=REDIRECT_URI,
+#             scope="user-top-read user-library-read",
+#             cache_path=CACHE_PATH,
+#             open_browser=False
+#         ))
+#     except Exception as e:
+#         st.error(f"Spotify authentication failed: {e}")
+#         return None
 
-sp = authenticate_spotify()
+# sp = authenticate_spotify()
 
 def get_top_artists(limit=10, time_range="medium_term"):
     """Fetches user's top artists."""
