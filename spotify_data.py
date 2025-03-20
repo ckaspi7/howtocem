@@ -17,7 +17,6 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
     client_secret=CLIENT_SECRET,
     redirect_uri="https://howtocem-test.streamlit.app/callback",
     scope="user-top-read user-library-read",
-    cache_path=CACHE_PATH
 ))
 
 def format_top_artists(top_artists):
