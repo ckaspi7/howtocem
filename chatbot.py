@@ -342,6 +342,7 @@ def create_personal_assistant():
         return {"messages": messages, "tool_result": "", "next_step": "generate_response"}
     
     def generate_response(state):
+        print(state)
         messages = state["messages"] 
         tool_result = state.get("tool_result", "")
         
