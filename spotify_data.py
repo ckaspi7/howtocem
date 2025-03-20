@@ -1,6 +1,7 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import streamlit as st
+import os
 
 # Spotify credentials from Streamlit secrets
 CLIENT_ID = st.secrets["SPOTIFY_CLIENT_ID"]
