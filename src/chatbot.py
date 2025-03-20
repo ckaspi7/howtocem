@@ -6,8 +6,8 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import pdfplumber
 import streamlit as st
-from spotify_data import get_top_artists, get_top_tracks
-from user_data import get_user_data 
+from src.spotify_data import get_top_artists, get_top_tracks
+from src.user_data import get_user_data 
 
 # LangChain imports
 from langchain_core.prompts import ChatPromptTemplate
