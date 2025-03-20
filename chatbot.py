@@ -241,10 +241,13 @@ def check_database_connection():
 def check_spotify_connection():
     try:
         from spotify_data import sp
+        if sp is None:
+            return False, "Spotify client failed to initialize. Check logs for details."
+            
         try:
             user_info = sp.current_user()
             return True, f"Connected to Spotify as: {user_info['display_name']}"
-        except Exception as e:
+        except spotipy.exceptions.SpotifyException as e:
             return False, f"Spotify API error: {str(e)}"
     except ImportError as e:
         return False, f"Spotify module import error: {str(e)}"
