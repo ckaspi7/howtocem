@@ -10,6 +10,11 @@ REDIRECT_URI = "https://howtocem-test.streamlit.app/callback"
 # Use a writable cache location on Streamlit Cloud
 CACHE_PATH = "/tmp/.spotify_cache"
 
+print(f"Spotify cache path: {os.path.abspath(CACHE_PATH)}")
+print(f"Spotify cache exists: {os.path.exists(CACHE_PATH)}")
+print(f"Spotify redirect URI: {REDIRECT_URI}")
+print(f"Spotify client id: {CLIENT_ID}")
+
 # Authenticate with Spotify
 def authenticate_spotify():
     try:
