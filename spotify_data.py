@@ -15,7 +15,7 @@ CACHE_PATH = "./.spotify_cache"
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
     client_id=CLIENT_ID,
     client_secret=CLIENT_SECRET,
-    redirect_uri=REDIRECT_URI,
+    redirect_uri="https://howtocem-test.streamlit.app/callback",
     scope="user-top-read user-library-read",
     cache_path=CACHE_PATH
 ))
