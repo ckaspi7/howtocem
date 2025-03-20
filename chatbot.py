@@ -311,24 +311,21 @@ def create_personal_assistant():
     
     def handle_spotify_query(state):
         messages = state["messages"]
-    
+
+        # Fetch top artists and tracks
         try:
-            # Fetch top artists and tracks
-            try:
-                top_artists = get_top_artists()
-                top_tracks = get_top_tracks()
+            top_artists = get_top_artists()
+            top_tracks = get_top_tracks()
+
+            # Check if the results are empty
+            if not top_artists.strip() or not top_tracks.strip():
+                raise ValueError("No listening history found. Try a different time range.")
+
+            result = f"**🎵 Top Artists:**\n{top_artists}\n\n**🎶 Top Tracks:**\n{top_tracks}"
             
-                # Check if the results are empty
-                if not top_artists or not top_tracks:
-                    raise ValueError("No listening history found. Try a different time range.")
-
-                result = f"**🎵 Top Artists:**\n{top_artists}\n\n**🎶 Top Tracks:**\n{top_tracks}"
-            except Exception as e:
-                result = f"Error fetching Spotify data: {str(e)}"
-                print(f"[DEBUG] Spotify API Error: {e}")  # Log error to console
-
         except Exception as e:
-            result = f"Could not retrieve music taste information. Error: {str(e)}"
+            result = f"Error fetching Spotify data: {str(e)}"
+            print(f"[DEBUG] Spotify API Error: {e}")  # Log error to console
 
         return {"messages": messages, "tool_result": result, "next_step": "generate_response"}
     
