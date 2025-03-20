@@ -9,7 +9,7 @@ CLIENT_SECRET = st.secrets["SPOTIFY_CLIENT_SECRET"]
 REDIRECT_URI = "https://howtocem-test.streamlit.app/callback"
 
 # Ensure a writable cache location
-CACHE_PATH = "./.spotify_cache"
+CACHE_PATH = "/tmp/.spotify_cache"
 
 # Print diagnostics
 print(f"Spotify cache path: {os.path.abspath(CACHE_PATH)}")
