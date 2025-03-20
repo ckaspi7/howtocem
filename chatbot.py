@@ -217,7 +217,7 @@ def get_linkedin_career_info() -> Dict[str, Any]:
 def create_personal_assistant():
     # Initialize the language model
     try:
-        llm = ChatOpenAI(temperature=0.7, model="gpt-4")
+        llm = ChatOpenAI(temperature=0.7, model="gpt-4o-mini")
     except Exception as e:
         st.error(f"Error initializing language model: {e}")
         # Fallback to a simpler model if needed
