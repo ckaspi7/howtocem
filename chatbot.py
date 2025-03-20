@@ -217,7 +217,6 @@ def get_linkedin_career_info() -> Dict[str, Any]:
                         "startDate": "2024-04",
                         "endDate": "2024-09",
                     },
-                    
                     {
                         "title": "Engineer-in-Training (GenAI and Automations)",
                         "startDate": "2022-01",
