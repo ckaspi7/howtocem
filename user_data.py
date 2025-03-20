@@ -1,5 +1,6 @@
 import sqlite3
 import json
+import os
 
 # Function to create a database connection with proper settings
 def get_db_connection():
