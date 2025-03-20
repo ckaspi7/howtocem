@@ -5,10 +5,9 @@ import sqlite3
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import pdfplumber
-from dotenv import load_dotenv
+import streamlit as st
 from spotify_data import get_top_artists, get_top_tracks
 from user_data import get_user_data 
-
 
 # LangChain imports
 from langchain_core.prompts import ChatPromptTemplate
@@ -17,32 +16,22 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain.tools import tool
 from langgraph.graph import StateGraph
-import streamlit as st
 
-# Load environment variables
-load_dotenv()
+# Load API keys from Streamlit secrets
+try:
+    os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+except Exception as e:
+    st.error(f"Error loading OpenAI API key: {e}")
 
-# Set OpenAI API key
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-
-# Initialize Spotify client (reusing your existing code)
-# def init_spotify():
-#     CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
-#     CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
-    
-#     sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-#         client_id=CLIENT_ID,
-#         client_secret=CLIENT_SECRET,
-#         redirect_uri="http://127.0.0.1:5000/callback",
-#         scope="user-top-read user-library-read"
-#     ))
-#     return sp
-
-# Resume extraction function (from your resume_parser.py)
+# Resume extraction function
 def extract_resume_info(pdf_path):
-    with pdfplumber.open(pdf_path) as pdf:
-        text = ''.join([page.extract_text() or '' for page in pdf.pages])
-    return text
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            text = ''.join([page.extract_text() or '' for page in pdf.pages])
+        return text
+    except Exception as e:
+        st.error(f"Error extracting resume: {e}")
+        return "Could not extract resume information."
 
 def format_resume_text(text):
     lines = text.split("\n")
@@ -95,43 +84,44 @@ def format_resume_text(text):
 
     return "\n".join(formatted_resume)
 
-# User data function (from your user_data.py)
-# def get_user_data():
-#     conn = sqlite3.connect("user_data.db")
-#     cursor = conn.cursor()
-
-#     # Fetch user data
-#     cursor.execute("SELECT * FROM users WHERE full_name = ?", ("Cem Kaspi",))
-#     row = cursor.fetchone()
-
-#     # Get column names
-#     column_names = [description[0] for description in cursor.description]
-
-#     # Convert to dictionary
-#     user_data = dict(zip(column_names, row)) if row else {}
-
-#     conn.close()
-#     return user_data
-
 # Function to prepare resume for vector storage
 def prepare_resume_vectorstore():
-    pdf_path =  r"C:\Users\cemka\OneDrive\Desktop\HowToCem\cem-info\Cem_Kaspi_Resume.pdf"
-    resume_text = extract_resume_info(pdf_path)
-    formatted_resume = format_resume_text(resume_text)
-    
-    # Split text for vectorization
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    texts = text_splitter.split_text(formatted_resume)
-    
-    # Create documents for the vectorstore
-    from langchain_core.documents import Document
-    documents = [Document(page_content=t) for t in texts]
-    
-    # Create embeddings and vectorstore
-    embeddings = OpenAIEmbeddings()
-    vectorstore = FAISS.from_documents(documents, embeddings)
-    
-    return vectorstore
+    try:
+        # Use relative path for the PDF file
+        # First check if file exists in data directory
+        data_dir = "data"
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir, exist_ok=True)
+            
+        pdf_path = os.path.join(data_dir, "Cem_Kaspi_Resume.pdf")
+        
+        # If file doesn't exist, check in the current directory
+        if not os.path.exists(pdf_path):
+            pdf_path = "Cem_Kaspi_Resume.pdf"
+            
+        if not os.path.exists(pdf_path):
+            st.error(f"Resume not found at {pdf_path}")
+            return None
+            
+        resume_text = extract_resume_info(pdf_path)
+        formatted_resume = format_resume_text(resume_text)
+        
+        # Split text for vectorization
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        texts = text_splitter.split_text(formatted_resume)
+        
+        # Create documents for the vectorstore
+        from langchain_core.documents import Document
+        documents = [Document(page_content=t) for t in texts]
+        
+        # Create embeddings and vectorstore
+        embeddings = OpenAIEmbeddings()
+        vectorstore = FAISS.from_documents(documents, embeddings)
+        
+        return vectorstore
+    except Exception as e:
+        st.error(f"Error preparing resume vectorstore: {e}")
+        return None
 
 # Tool definitions for LangGraph
 @tool
@@ -140,6 +130,9 @@ def get_resume_info(query: str) -> str:
     # Create or load the vectorstore
     try:
         vectorstore = prepare_resume_vectorstore()
+        if vectorstore is None:
+            return "Resume information is not currently available."
+            
         docs = vectorstore.similarity_search(query, k=2)
         
         if docs:
@@ -158,39 +151,16 @@ def get_personal_info(info_type: str = None) -> str:
         if not user_data:
             return "I couldn't find any personal information."
 
-        # If info_type is specified, return only that field (optional feature)
-        # if info_type and info_type.lower() in user_data:
-        #     return f"{info_type.capitalize()}: {user_data[info_type.lower()]}"
-        
         # Convert the full dictionary into a readable string format
         return "\n".join(f"{key.capitalize()}: {value}" for key, value in user_data.items())
 
     except Exception as e:
         return f"Error retrieving personal info: {str(e)}"
 
-# def get_personal_info(info_type: str = None) -> Dict[str, Any]:
-#     """Get personal information from the user database."""
-#     try:
-#         user_data = json.loads(get_user_data())
-        
-#         if info_type and info_type.lower() in user_data:
-#             return {info_type.lower(): user_data[info_type.lower()]}
-#         else:
-#             # Return a subset of non-sensitive info if no specific type requested
-#             safe_fields = [
-#                 "full_name", "age", "gender", "city", "hometown", 
-#                 "languages_spoken", "favorite_cuisines", "hobbies"
-#             ]
-#             return {k: v for k, v in user_data.items() if k in safe_fields}
-#     except Exception as e:
-#         return {"error": f"Error retrieving personal info: {str(e)}"}
-
 @tool
 def get_music_taste() -> Dict[str, List[Dict]]:
     """Get the user's music taste from Spotify data."""
     try:
-        # sp = init_spotify()
-        
         top_artists_data = get_top_artists(limit=5)
         top_tracks_data = get_top_tracks(limit=5)
         
@@ -246,7 +216,16 @@ def get_linkedin_career_info() -> Dict[str, Any]:
 # Create LangGraph for orchestration
 def create_personal_assistant():
     # Initialize the language model
-    llm = ChatOpenAI(temperature=0.7, model="gpt-4")
+    try:
+        llm = ChatOpenAI(temperature=0.7, model="gpt-4")
+    except Exception as e:
+        st.error(f"Error initializing language model: {e}")
+        # Fallback to a simpler model if needed
+        try:
+            llm = ChatOpenAI(temperature=0.7, model="gpt-3.5-turbo")
+        except:
+            st.error("Could not initialize any language model. Check your API key.")
+            return None
     
     # Define the state
     class GraphState(TypedDict):
@@ -328,25 +307,28 @@ def create_personal_assistant():
         info_type = llm.invoke(prompt_value).content.strip()
         
         result = get_personal_info.invoke(info_type)
-        return {"messages": messages, "tool_result": json.dumps(result), "next_step": "generate_response"}
+        return {"messages": messages, "tool_result": result, "next_step": "generate_response"}
     
     def handle_spotify_query(state):
         messages = state["messages"]
     
         try:
-            # Fetch top artists and tracks (WITHOUT passing `sp`)
-            top_artists = get_top_artists()
-            top_tracks = get_top_tracks()
-        
-            # Check if the results are empty
-            if not top_artists.strip() or not top_tracks.strip():
-                raise ValueError("No listening history found. Try a different time range.")
+            # Fetch top artists and tracks
+            try:
+                top_artists = get_top_artists()
+                top_tracks = get_top_tracks()
+            
+                # Check if the results are empty
+                if not top_artists or not top_tracks:
+                    raise ValueError("No listening history found. Try a different time range.")
 
-            result = f"**🎵 Top Artists:**\n{top_artists}\n\n**🎶 Top Tracks:**\n{top_tracks}"
+                result = f"**🎵 Top Artists:**\n{top_artists}\n\n**🎶 Top Tracks:**\n{top_tracks}"
+            except Exception as e:
+                result = f"Error fetching Spotify data: {str(e)}"
+                print(f"[DEBUG] Spotify API Error: {e}")  # Log error to console
 
         except Exception as e:
-            result = f"Error fetching Spotify data: {str(e)}"
-            print(f"[DEBUG] Spotify API Error: {e}")  # Log error to console
+            result = f"Could not retrieve music taste information. Error: {str(e)}"
 
         return {"messages": messages, "tool_result": result, "next_step": "generate_response"}
     
@@ -360,12 +342,11 @@ def create_personal_assistant():
         return {"messages": messages, "tool_result": "", "next_step": "generate_response"}
     
     def generate_response(state):
-        print(state)
         messages = state["messages"] 
         tool_result = state.get("tool_result", "")
         
         # Convert messages dict format to LangChain message format
-        from langchain_core.messages import HumanMessage, AIMessage
+        from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
         
         langchain_messages = []
         for msg in messages:
@@ -388,10 +369,14 @@ def create_personal_assistant():
         combined_messages = prompt_value.messages + langchain_messages
         
         # Get the response from the LLM using the combined messages
-        response = llm.invoke(combined_messages)
+        try:
+            response = llm.invoke(combined_messages)
+            response_content = response.content
+        except Exception as e:
+            response_content = f"I'm sorry, I encountered an error while generating a response: {str(e)}"
         
         # Add the response to messages
-        messages.append({"role": "ai", "content": response.content})
+        messages.append({"role": "ai", "content": response_content})
         
         return {"messages": messages, "next_step": "end"}
     
@@ -435,6 +420,36 @@ def main():
     st.title("HowToCem")
     st.write("👋 Hi! I'm Cem Kaspi's virtual assistant. Ask me anything about his resume, personal info, career, or music taste!")
     
+    # Debug Mode
+    with st.sidebar:
+        debug_mode = st.checkbox("Debug Mode")
+        if debug_mode:
+            st.write("### Environment Check")
+            st.write(f"Current Working Directory: {os.getcwd()}")
+            st.write(f"Files in Directory: {os.listdir()}")
+            
+            # Check for data directory
+            if os.path.exists("data"):
+                st.write(f"Files in data directory: {os.listdir('data')}")
+            else:
+                st.write("Data directory not found")
+                
+            # Check for API keys
+            st.write("API Keys:")
+            try:
+                has_openai = "OPENAI_API_KEY" in st.secrets
+                st.write(f"- OpenAI API Key set: {has_openai}")
+            except:
+                st.write("- OpenAI API Key: Not found in secrets")
+                
+            try:
+                has_spotify_id = "SPOTIFY_CLIENT_ID" in st.secrets
+                has_spotify_secret = "SPOTIFY_CLIENT_SECRET" in st.secrets
+                st.write(f"- Spotify Client ID set: {has_spotify_id}")
+                st.write(f"- Spotify Client Secret set: {has_spotify_secret}")
+            except:
+                st.write("- Spotify credentials: Not found in secrets")
+    
     # Initialize session state
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -445,7 +460,11 @@ def main():
         })
     
     # Create assistant graph
-    assistant_graph = create_personal_assistant()
+    try:
+        assistant_graph = create_personal_assistant()
+    except Exception as e:
+        st.error(f"Error creating assistant: {e}")
+        assistant_graph = None
     
     # Display chat messages
     for message in st.session_state.messages:
@@ -465,27 +484,34 @@ def main():
         with st.chat_message("ai"):
             with st.spinner("Thinking..."):
                 try:
-                    # Process with LangGraph
-                    state = {
-                        "messages": st.session_state.messages[:-1],  # Exclude just added message
-                        "next_step": "",
-                        "tool_result": ""
-                    }
-                    
-                    # Add the latest user message
-                    state["messages"].append({"role": "human", "content": prompt})
-                    
-                    # Run the graph
-                    response_state = assistant_graph.invoke(state)
-                    
-                    # Extract the assistant's response (the last message)
-                    assistant_response = response_state["messages"][-1]["content"]
-                    
-                    # Update the session state
-                    st.session_state.messages = response_state["messages"]
-                    
-                    # Display the response
-                    st.markdown(assistant_response)
+                    if assistant_graph is None:
+                        st.markdown("I'm sorry, I couldn't initialize the assistant. Please check the logs in debug mode.")
+                        st.session_state.messages.append({
+                            "role": "ai", 
+                            "content": "I'm sorry, I couldn't initialize the assistant. Please check the logs in debug mode."
+                        })
+                    else:
+                        # Process with LangGraph
+                        state = {
+                            "messages": st.session_state.messages[:-1],  # Exclude just added message
+                            "next_step": "",
+                            "tool_result": ""
+                        }
+                        
+                        # Add the latest user message
+                        state["messages"].append({"role": "human", "content": prompt})
+                        
+                        # Run the graph
+                        response_state = assistant_graph.invoke(state)
+                        
+                        # Extract the assistant's response (the last message)
+                        assistant_response = response_state["messages"][-1]["content"]
+                        
+                        # Update the session state
+                        st.session_state.messages = response_state["messages"]
+                        
+                        # Display the response
+                        st.markdown(assistant_response)
                 except Exception as e:
                     import traceback
                     error_message = f"I'm sorry, I encountered an error: {str(e)}\n\n"
