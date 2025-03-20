@@ -201,18 +201,43 @@ def get_linkedin_career_info() -> Dict[str, Any]:
     return {
         "positions": [
             {
-                "title": "Data Engineer",
+                "title": "AI/ML Engineer",
                 "company": "TELUS Communications Inc.",
-                "startDate": "2023-01",
+                "startDate": "2022-01",
                 "endDate": "present", 
-                "description": "Data Engineering and API design"
+                "description": "GenAI application and ML model development"
+                "careerProgression": [
+                    {
+                        "title": "AI/ML Engineer",
+                        "startDate": "2024-09",
+                        "endDate": "present",
+                    },
+                    {
+                        "title": "Software Developer (GenAI & Chatbot Development)",
+                        "startDate": "2024-04",
+                        "endDate": "2024-09",
+                    },
+                    
+                    {
+                        "title": "Engineer-in-Training (GenAI and Automations)",
+                        "startDate": "2022-01",
+                        "endDate": "2024-04",
+                    }
+                ]
             },
             {
-                "title": "Business Intelligence Analyst",
-                "company": "TELUS Communications Inc.",
-                "startDate": "2021-06",
-                "endDate": "2022-12",
-                "description": "Data analysis and visualization"
+                "title": "Co-Founder",
+                "company": "NeoWise",
+                "startDate": "2019-09",
+                "endDate": "2022-01",
+                "description": "Startup venture for a personal heating and cooling wearable product that optimizes your daily comfort and performance. Responsibilities include: Product R&D, Hardware Design, 3D Modeling & Rendering"
+            },
+            {
+                "title": "Manufacturing Engineering Intern",
+                "company": "Mercedes-Benz Canada",
+                "startDate": "2018-01",
+                "endDate": "2019-08",
+                "description": "Worked as a part of the manufacturing engineering team with a group of multidisciplinary engineers and technicians at the Mercedes-Benz Fuel Cell Division. Performed statistical process analysis on bipolar plate welding and sealing."
             }
         ]
     }
