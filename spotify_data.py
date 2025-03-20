@@ -6,18 +6,32 @@ import os
 # Get Spotify credentials from Streamlit secrets
 CLIENT_ID = st.secrets["SPOTIFY_CLIENT_ID"]
 CLIENT_SECRET = st.secrets["SPOTIFY_CLIENT_SECRET"]
-REDIRECT_URI = st.secrets.get("SPOTIFY_REDIRECT_URI", "https://share.streamlit.io/callback")
+REDIRECT_URI = "https://howtocem-test.streamlit.app/callback"
 
 # Ensure a writable cache location
 CACHE_PATH = "./.spotify_cache"
 
+# Print diagnostics
+print(f"Spotify cache path: {os.path.abspath(CACHE_PATH)}")
+print(f"Spotify cache exists: {os.path.exists(CACHE_PATH)}")
+print(f"Spotify redirect URI: {REDIRECT_URI}")
+
 # Authenticate with Spotify
-sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-    client_id=CLIENT_ID,
-    client_secret=CLIENT_SECRET,
-    redirect_uri="https://howtocem-test.streamlit.app/callback",
-    scope="user-top-read user-library-read",
-))
+try:
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
+        client_id=CLIENT_ID,
+        client_secret=CLIENT_SECRET,
+        redirect_uri=REDIRECT_URI,
+        scope="user-top-read user-library-read",
+        cache_path=CACHE_PATH,
+        open_browser=False
+    ))
+    # Test connection
+    sp.current_user()
+    print("Spotify authentication successful")
+except Exception as e:
+    print(f"Spotify authentication error: {str(e)}")
+    sp = None
 
 def format_top_artists(top_artists):
     """Formats top artists into a structured plain text format."""
