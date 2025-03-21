@@ -374,21 +374,29 @@ def create_personal_assistant():
         messages = state["messages"]
     
         try:
-            # Fetch top artists and tracks (WITHOUT passing `sp`)
-            top_artists = get_top_artists()
-            top_tracks = get_top_tracks()
+            # Fetch music taste data using the @tool function with .invoke()
+            result = get_music_taste.invoke({})
+
+            # If the result contains an error message, raise it
+            if "error" in result:
+                raise ValueError(result["error"])
+            
+            # Extract top artists and tracks from the result
+            top_artists = result["top_artists"]
+            top_tracks = result["top_tracks"]
         
             # Check if the results are empty
             if not top_artists or not top_tracks:
                 raise ValueError("No listening history found. Try a different time range.")
             
             # Format artists and tracks for display
+            # Format artists and tracks for display
             top_artists_str = "\n".join(
-                [f"{artist['rank']}. {artist['name']} (Genres: {artist['genres']})" for artist in top_artists]
+                [f"{i+1}. {artist['name']} (Genres: {', '.join(artist['genres'])})" for i, artist in enumerate(top_artists)]
             )
 
             top_tracks_str = "\n".join(
-                [f"{track['rank']}. {track['title']} - {track['artists']}" for track in top_tracks]
+                [f"{i+1}. {track['name']} - {track['artist']}" for i, track in enumerate(top_tracks)]
             )
 
             result = f"🎵 **Top Artists:**\n{top_artists_str}\n\n🎶 **Top Tracks:**\n{top_tracks_str}"
@@ -398,6 +406,35 @@ def create_personal_assistant():
             print(f"[DEBUG] Spotify API Error: {e}")  # Log error to console
 
         return {"messages": messages, "tool_result": result, "next_step": "generate_response"}
+
+    # def handle_spotify_query(state):
+    #     messages = state["messages"]
+    
+    #     try:
+    #         # Fetch top artists and tracks (WITHOUT passing `sp`)
+    #         top_artists = get_top_artists()
+    #         top_tracks = get_top_tracks()
+        
+    #         # Check if the results are empty
+    #         if not top_artists or not top_tracks:
+    #             raise ValueError("No listening history found. Try a different time range.")
+            
+    #         # Format artists and tracks for display
+    #         top_artists_str = "\n".join(
+    #             [f"{artist['rank']}. {artist['name']} (Genres: {artist['genres']})" for artist in top_artists]
+    #         )
+
+    #         top_tracks_str = "\n".join(
+    #             [f"{track['rank']}. {track['title']} - {track['artists']}" for track in top_tracks]
+    #         )
+
+    #         result = f"🎵 **Top Artists:**\n{top_artists_str}\n\n🎶 **Top Tracks:**\n{top_tracks_str}"
+
+    #     except Exception as e:
+    #         result = f"Error fetching Spotify data: {str(e)}"
+    #         print(f"[DEBUG] Spotify API Error: {e}")  # Log error to console
+
+    #     return {"messages": messages, "tool_result": result, "next_step": "generate_response"}
     
     def handle_linkedin_query(state):
         messages = state["messages"]
