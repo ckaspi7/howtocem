@@ -184,7 +184,7 @@ def get_music_taste() -> Dict[str, List[Dict]]:
             }
             for track in top_tracks_data
         ]
-        
+
         # top_artists = [
         #     {
         #         "name": artist["name"],
@@ -369,21 +369,30 @@ def create_personal_assistant():
         
         result = get_personal_info.invoke(info_type)
         return {"messages": messages, "tool_result": result, "next_step": "generate_response"}
-    
+
     def handle_spotify_query(state):
         messages = state["messages"]
-
-        # Fetch top artists and tracks
+    
         try:
+            # Fetch top artists and tracks (WITHOUT passing `sp`)
             top_artists = get_top_artists()
             top_tracks = get_top_tracks()
-
+        
             # Check if the results are empty
-            if not top_artists.strip() or not top_tracks.strip():
+            if not top_artists or not top_tracks:
                 raise ValueError("No listening history found. Try a different time range.")
-
-            result = f"**🎵 Top Artists:**\n{top_artists}\n\n**🎶 Top Tracks:**\n{top_tracks}"
             
+            # Format artists and tracks for display
+            top_artists_str = "\n".join(
+                [f"{artist['rank']}. {artist['name']} (Genres: {artist['genres']})" for artist in top_artists]
+            )
+
+            top_tracks_str = "\n".join(
+                [f"{track['rank']}. {track['title']} - {track['artists']}" for track in top_tracks]
+            )
+
+            result = f"🎵 **Top Artists:**\n{top_artists_str}\n\n🎶 **Top Tracks:**\n{top_tracks_str}"
+
         except Exception as e:
             result = f"Error fetching Spotify data: {str(e)}"
             print(f"[DEBUG] Spotify API Error: {e}")  # Log error to console
