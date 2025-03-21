@@ -165,27 +165,43 @@ def get_personal_info(info_type: str = None) -> str:
 def get_music_taste() -> Dict[str, List[Dict]]:
     """Get the user's music taste from Spotify data."""
     try:
-        top_artists_data = get_top_artists(limit=5)
-        top_tracks_data = get_top_tracks(limit=5)
+        top_artists_data = get_top_artists()
+        top_tracks_data = get_top_tracks()
         
         # Format the data for more readable output
         top_artists = [
             {
                 "name": artist["name"],
-                "genres": artist["genres"] if "genres" in artist else [],
-                "popularity": artist["popularity"] if "popularity" in artist else None
+                "genres": artist["genres"].split(", ") if artist["genres"] != "Unknown" else [],
             }
             for artist in top_artists_data
         ]
-        
+
         top_tracks = [
             {
-                "name": track["name"],
-                "artist": track["artists"][0]["name"] if track["artists"] else "Unknown",
-                "album": track["album"]["name"] if "album" in track else "Unknown"
+                "name": track["title"],
+                "artist": track["artists"],
             }
             for track in top_tracks_data
         ]
+        
+        # top_artists = [
+        #     {
+        #         "name": artist["name"],
+        #         "genres": artist["genres"] if "genres" in artist else [],
+        #         "popularity": artist["popularity"] if "popularity" in artist else None
+        #     }
+        #     for artist in top_artists_data
+        # ]
+        
+        # top_tracks = [
+        #     {
+        #         "name": track["name"],
+        #         "artist": track["artists"][0]["name"] if track["artists"] else "Unknown",
+        #         "album": track["album"]["name"] if "album" in track else "Unknown"
+        #     }
+        #     for track in top_tracks_data
+        # ]
         
         return {
             "top_artists": top_artists,
