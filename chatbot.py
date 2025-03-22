@@ -8,6 +8,7 @@ import pdfplumber
 import streamlit as st
 from spotify_data import get_top_artists, get_top_tracks
 from user_data import get_user_data 
+from linkedin_info import get_linkedin_profile_info
 
 # LangChain imports
 from langchain_core.prompts import ChatPromptTemplate
@@ -211,34 +212,16 @@ def get_music_taste() -> Dict[str, List[Dict]]:
         return {"error": f"Error retrieving Spotify data: {str(e)}"}
 
 @tool
-def get_linkedin_career_info() -> Dict[str, Any]:
+def get_linkedin_info() -> Dict[str, Any]:
     """Get career information from LinkedIn."""
-    # This is a placeholder - you'll implement this with your LinkedIn API code
-    return {
-        "positions": [
-            {
-                "title": "AI/ML Engineer",
-                "company": "TELUS Communications Inc.",
-                "startDate": "2022-01",
-                "endDate": "present", 
-                "description": "GenAI application and ML model development"
-            },
-            {
-                "title": "Co-Founder",
-                "company": "NeoWise",
-                "startDate": "2019-09",
-                "endDate": "2022-01",
-                "description": "Startup venture for a personal heating and cooling wearable product that optimizes your daily comfort and performance. Responsibilities include: Product R&D, Hardware Design, 3D Modeling & Rendering"
-            },
-            {
-                "title": "Manufacturing Engineering Intern",
-                "company": "Mercedes-Benz Canada",
-                "startDate": "2018-01",
-                "endDate": "2019-08",
-                "description": "Worked as a part of the manufacturing engineering team with a group of multidisciplinary engineers and technicians at the Mercedes-Benz Fuel Cell Division. Performed statistical process analysis on bipolar plate welding and sealing."
-            }
-        ]
-    }
+    try:
+        # Get LinkedIn profile information from the imported function
+        profile_info = get_linkedin_profile_info()  # Call the external function
+
+        # Return the profile info as a dictionary, ready for use in the handle function
+        return profile_info
+    except Exception as e:
+        return {"error": f"Error fetching LinkedIn data: {str(e)}"}  
 
 # Add this function to check for database connectivity
 def check_database_connection():
@@ -438,8 +421,32 @@ def create_personal_assistant():
     
     def handle_linkedin_query(state):
         messages = state["messages"]
-        result = get_linkedin_career_info.invoke()
-        return {"messages": messages, "tool_result": json.dumps(result), "next_step": "generate_response"}
+    
+        try:
+            # Fetch LinkedIn profile info using the @tool function
+            result = get_linkedin_info.invoke({})  # Invoke the tool function to get the profile info
+        
+            # If there's an error, raise it
+            if "error" in result:
+                raise ValueError(result["error"])
+
+            # Convert result into a string manually for readability and consistency
+            tool_result = f"**LinkedIn Career Info**\nHeadline: {result['headline']}\nAbout: {result['about']}\n"
+        
+            for position in result['positions']:
+                tool_result += f"\n**{position['title']}** at {position['company']} ({position['startDate']} to {position['endDate']})\n"
+                tool_result += f"Description: {position['description']}\n"
+        
+                if 'promotions' in position:
+                    tool_result += "**Promotions:**\n"
+                    for promotion in position['promotions']:
+                        tool_result += f"- {promotion['title']} ({promotion['startDate']} to {promotion['endDate']})\n"
+
+        except Exception as e:
+            tool_result = f"Error fetching LinkedIn data: {str(e)}"  # Error handling as a string
+            print(f"[DEBUG] LinkedIn API Error: {e}")
+
+        return {"messages": messages, "tool_result": tool_result, "next_step": "generate_response"}
     
     def handle_conversation(state):
         messages = state["messages"]
