@@ -647,8 +647,8 @@ def main():
                             message_placeholder.markdown(full_response)  # Final display
 
                         # Extract the assistant's response (the last message)
-                        full_response = response_state["messages"][-1]["content"]
-
+                        response_state["messages"][-1]["content"] = full_response
+                        
                         # Update the session state
                         st.session_state.messages = response_state["messages"]
                 except Exception as e:
