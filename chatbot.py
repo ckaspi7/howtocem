@@ -482,13 +482,12 @@ def create_personal_assistant():
         
         # Get the response from the LLM using the combined messages
         try:
-            response = llm.invoke(combined_messages)
-            response_content = response.content
+            response = llm.stream(combined_messages)
         except Exception as e:
-            response_content = f"I'm sorry, I encountered an error while generating a response: {str(e)}"
+            response = f"I'm sorry, I encountered an error while generating a response: {str(e)}"
         
         # Add the response to messages
-        messages.append({"role": "ai", "content": response_content})
+        messages.append({"role": "ai", "content": response})
         
         return {"messages": messages, "next_step": "end"}
     
@@ -531,6 +530,11 @@ def create_personal_assistant():
 def main():
     st.title("HowToCem")
     st.write("👋 Hi! I'm Cem Kaspi's virtual assistant. Ask me anything about his resume, personal info, career, or music taste!")
+
+    # Clear Chat Button
+    if st.button("🗑️ Clear Chat", key="clear_chat"):
+        st.session_state.messages = []
+        st.rerun()  # Refresh UI
     
     # Debug Mode
     with st.sidebar:
@@ -601,7 +605,7 @@ def main():
         
         # Generate response with thinking spinner
         with st.chat_message("ai"):
-            with st.spinner("Thinking..."):
+                message_placeholder = st.empty()
                 try:
                     if assistant_graph is None:
                         st.markdown("I'm sorry, I couldn't initialize the assistant. Please check the logs in debug mode.")
@@ -610,27 +614,43 @@ def main():
                             "content": "I'm sorry, I couldn't initialize the assistant. Please check the logs in debug mode."
                         })
                     else:
-                        # Process with LangGraph
-                        state = {
-                            "messages": st.session_state.messages[:-1],  # Exclude just added message
-                            "next_step": "",
-                            "tool_result": ""
-                        }
+                        with st.spinner("Thinking..."):
+                            # Process with LangGraph
+                            state = {
+                                "messages": st.session_state.messages[:-1],  # Exclude just added message
+                                "next_step": "",
+                                "tool_result": ""
+                            }
                         
-                        # Add the latest user message
-                        state["messages"].append({"role": "human", "content": prompt})
+                            # Add the latest user message
+                            state["messages"].append({"role": "human", "content": prompt})
                         
-                        # Run the graph
-                        response_state = assistant_graph.invoke(state)
+                            # Run the graph
+                            response_state = assistant_graph.invoke(state)
                         
+                            # Extract the assistant's response (the last message)
+                            final_response = response_state["messages"][-1]["content"]
+                        
+                        # Handle response streaming
+                        full_response = ""
+
+                        # Check if final_response is iterable (like a generator) or just a string
+                        if isinstance(final_response, str):
+                            # If it's a plain string, display it directly
+                            full_response = final_response
+                        else:
+                        # Otherwise, assume it's a generator and stream it chunk by chunk
+                            for chunk in final_response:
+                                if hasattr(chunk, "content"):  # Ensure chunk has content
+                                    full_response += chunk.content
+                                    message_placeholder.markdown(full_response + "▌")  # Typing effect
+                            message_placeholder.markdown(full_response)  # Final display
+
                         # Extract the assistant's response (the last message)
-                        assistant_response = response_state["messages"][-1]["content"]
-                        
+                        full_response = response_state["messages"][-1]["content"]
+
                         # Update the session state
                         st.session_state.messages = response_state["messages"]
-                        
-                        # Display the response
-                        st.markdown(assistant_response)
                 except Exception as e:
                     import traceback
                     error_message = f"I'm sorry, I encountered an error: {str(e)}\n\n"
