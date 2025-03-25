@@ -536,6 +536,29 @@ def main():
         initial_sidebar_state="expanded",  # Can be "auto", "expanded", or "collapsed"
     )
 
+    # Custom CSS for branding
+    st.markdown("""
+        <style>
+        .app-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1c1c1c;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .app-subtitle {
+            font-size: 1rem;
+            color: #1c1c1c;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .stMarkdown {
+            text-align: left;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="app-title">😎 HowToCem</div>', unsafe_allow_html=True)
     st.title("HowToCem")
     st.write("👋 Hi! I'm Cem Kaspi's virtual assistant. Ask me anything about his resume, personal info, career, or music taste!")
     
