@@ -608,11 +608,11 @@ def main():
         st.session_state.messages.append({"role": "human", "content": prompt})
         
         # Display human message
-        with st.chat_message("human"):
+        with st.chat_message("human", avatar="🧐"):
             st.markdown(prompt)
         
         # Generate response with thinking spinner
-        with st.chat_message("ai"):
+        with st.chat_message("ai", avatar="😎"):
                 message_placeholder = st.empty()
                 try:
                     if assistant_graph is None:
