@@ -526,6 +526,14 @@ def create_personal_assistant():
     # Compile the graph
     return workflow.compile()
 
+# Helper function to define avatars
+def get_avatar(role):
+    if role == "ai":
+        return "😎"  # AI avatar
+    elif role == "human":
+        return "🧐"  # User avatar
+    return None
+
 # Streamlit UI
 def main():
     # Set the page configuration
@@ -622,7 +630,7 @@ def main():
     
     # Display chat messages
     for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
+        with st.chat_message(message["role"], avatar=get_avatar(message["role"])):
             st.markdown(message["content"])
     
     # Get user input
