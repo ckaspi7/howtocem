@@ -530,48 +530,48 @@ def create_personal_assistant():
 def main():
     st.title("HowToCem")
     st.write("👋 Hi! I'm Cem Kaspi's virtual assistant. Ask me anything about his resume, personal info, career, or music taste!")
-
-    # Clear Chat Button
-    if st.button("🗑️ Clear Chat", key="clear_chat"):
-        st.session_state.messages = []
-        st.rerun()  # Refresh UI
     
     # Debug Mode
     with st.sidebar:
-        debug_mode = st.checkbox("Debug Mode")
-        if debug_mode:
-            st.write("### Environment Check")
-            st.write(f"Current Working Directory: {os.getcwd()}")
-            st.write(f"Files in Directory: {os.listdir()}")
+        # Clear Chat Button
+        if st.button("🗑️ Clear Chat", key="clear_chat"):
+            st.session_state.messages = []
+            st.rerun()  # Refresh UI
             
-            # Check for data directory
-            if os.path.exists("data"):
-                st.write(f"Files in data directory: {os.listdir('data')}")
-            else:
-                st.write("Data directory not found")
+        # debug_mode = st.checkbox("Debug Mode")
+        # if debug_mode:
+        #     st.write("### Environment Check")
+        #     st.write(f"Current Working Directory: {os.getcwd()}")
+        #     st.write(f"Files in Directory: {os.listdir()}")
+            
+        #     # Check for data directory
+        #     if os.path.exists("data"):
+        #         st.write(f"Files in data directory: {os.listdir('data')}")
+        #     else:
+        #         st.write("Data directory not found")
                 
-            # Check for API keys
-            st.write("API Keys:")
-            try:
-                has_openai = "OPENAI_API_KEY" in st.secrets
-                st.write(f"- OpenAI API Key set: {has_openai}")
-            except:
-                st.write("- OpenAI API Key: Not found in secrets")
+        #     # Check for API keys
+        #     st.write("API Keys:")
+        #     try:
+        #         has_openai = "OPENAI_API_KEY" in st.secrets
+        #         st.write(f"- OpenAI API Key set: {has_openai}")
+        #     except:
+        #         st.write("- OpenAI API Key: Not found in secrets")
                 
-            try:
-                has_spotify_id = "SPOTIFY_CLIENT_ID" in st.secrets
-                has_spotify_secret = "SPOTIFY_CLIENT_SECRET" in st.secrets
-                st.write(f"- Spotify Client ID set: {has_spotify_id}")
-                st.write(f"- Spotify Client Secret set: {has_spotify_secret}")
-            except:
-                st.write("- Spotify credentials: Not found in secrets")
+        #     try:
+        #         has_spotify_id = "SPOTIFY_CLIENT_ID" in st.secrets
+        #         has_spotify_secret = "SPOTIFY_CLIENT_SECRET" in st.secrets
+        #         st.write(f"- Spotify Client ID set: {has_spotify_id}")
+        #         st.write(f"- Spotify Client Secret set: {has_spotify_secret}")
+        #     except:
+        #         st.write("- Spotify credentials: Not found in secrets")
 
-            st.write("### Connection Tests")
-            db_connected, db_message = check_database_connection()
-            st.write(f"Database: {'✅' if db_connected else '❌'} {db_message}")
+        #     st.write("### Connection Tests")
+        #     db_connected, db_message = check_database_connection()
+        #     st.write(f"Database: {'✅' if db_connected else '❌'} {db_message}")
     
-            spotify_connected, spotify_message = check_spotify_connection()
-            st.write(f"Spotify: {'✅' if spotify_connected else '❌'} {spotify_message}")
+        #     spotify_connected, spotify_message = check_spotify_connection()
+        #     st.write(f"Spotify: {'✅' if spotify_connected else '❌'} {spotify_message}")
     
     # Initialize session state
     if "messages" not in st.session_state:
@@ -648,7 +648,7 @@ def main():
 
                         # Extract the assistant's response (the last message)
                         response_state["messages"][-1]["content"] = full_response
-                        
+
                         # Update the session state
                         st.session_state.messages = response_state["messages"]
                 except Exception as e:
