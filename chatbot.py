@@ -559,7 +559,7 @@ def main():
     """, unsafe_allow_html=True)
 
     st.markdown('<div class="app-title">😎 HowToCem</div>', unsafe_allow_html=True)
-    st.title("HowToCem")
+    # st.title("HowToCem")
     st.write("👋 Hi! I'm Cem Kaspi's virtual assistant. Ask me anything about his resume, personal info, career, or music taste!")
     
     # Debug Mode
@@ -608,10 +608,10 @@ def main():
     if "messages" not in st.session_state:
         st.session_state.messages = []
         # Add a welcome message
-        st.session_state.messages.append({
-            "role": "ai", 
-            "content": "Hello! I'm Cem's personal AI assistant. How can I help you learn more about him today?"
-        })
+        # st.session_state.messages.append({
+        #     "role": "ai", 
+        #     "content": "Hello! I'm Cem's personal AI assistant. How can I help you learn more about him today?"
+        # })
     
     # Create assistant graph
     try:
