@@ -559,7 +559,6 @@ def main():
     """, unsafe_allow_html=True)
 
     st.markdown('<div class="app-title">HowToCem</div>', unsafe_allow_html=True)
-    st.markdown('<div class="app-subtitle">Cem Kaspi\'s Personal AI Assistant</div>', unsafe_allow_html=True)
     # st.title("HowToCem")
     st.write("👋 Hi! I'm Cem Kaspi's virtual assistant. Ask me anything about his resume, personal info, career, or music taste!")
     
