@@ -37,50 +37,73 @@ def extract_resume_info(pdf_path):
 def format_resume_text(text):
     lines = text.split("\n")
     formatted_resume = []
-    
+
     section_titles = ["Summary", "Strengths", "Experience", "Education"]
     education_keywords = ["Bachelor", "Master", "PhD", "University", "College", "Diploma", "Dean's List", "Minor in"]
-    
+    job_indicators = ["Software Developer", "Co-Founder", "Engineer", "Manager", "Intern", "Co-Op"]
+
+    contact_info = []
+    summary_buffer = []
+    strengths_buffer = []
     experience_buffer = []
     education_buffer = []
-    
+
     current_section = None
     added_sections = set()
+    previous_line = ""
 
     for line in lines:
-        line = line.strip().replace("", "-")  # Replace bullet points with dashes
+        line = line.strip().replace("", "-")  # Replace bullet points with dashes
         if not line:
             continue
 
         # Detect section headers
         if any(line.lower().startswith(title.lower()) for title in section_titles):
-            if line not in added_sections:
-                formatted_resume.append(f"\n## {line} ##\n")
-                added_sections.add(line)
             current_section = line
             continue
 
-        # Remove redundant "Experience" and "Education" between sections
-        if current_section in ["Experience", "Education"] and line in section_titles:
+        # Capture name and contact info before sections start
+        if not current_section and ("@" in line or "linkedin.com" in line or "CEM KASPI" in line or any(char.isdigit() for char in line)):
+            contact_info.append(line)
             continue
 
-        # Ensure TELUS Communications Inc. stays on one line
-        if "TELUS" in line and "Communications Inc." in line:
-            formatted_resume.append("TELUS Communications Inc. - 2 yrs 11 mos")
+        # Handle TELUS Communications Inc. being split across lines
+        if "TELUS" in previous_line and "Communications Inc." in line:
+            experience_buffer.append("TELUS Communications Inc. - 2 yrs 11 mos")
             continue
 
-        # Identify and move misplaced education details
-        if any(keyword in line for keyword in education_keywords):
+        # Categorize content based on detected sections
+        if current_section == "Summary":
+            summary_buffer.append(line)
+        elif current_section == "Strengths":
+            strengths_buffer.append(line)
+        elif any(keyword in line for keyword in education_keywords):
             education_buffer.append(line)
+            current_section = "Education"
+        elif any(job in line for job in job_indicators) or " - " in line:
+            experience_buffer.append(line)
+            current_section = "Experience"
         elif current_section == "Experience":
             experience_buffer.append(line)
+        elif current_section == "Education":
+            education_buffer.append(line)
         else:
             formatted_resume.append(line)
 
-    # Ensure sections appear only once and in order
-    if experience_buffer and "Experience" not in added_sections:
+        previous_line = line  # Track last line to fix TELUS issue
+
+    # Insert the Contact Information section at the top
+    if contact_info:
+        formatted_resume.insert(0, "\n## Contact Information ##\n" + "\n".join(contact_info))
+
+    # Append sections in order
+    if summary_buffer:
+        formatted_resume.insert(1, "\n## Summary ##\n" + "\n".join(summary_buffer))
+    if strengths_buffer:
+        formatted_resume.insert(2, "\n## Strengths ##\n" + "\n".join(strengths_buffer))
+    if experience_buffer:
         formatted_resume.append("\n## Experience ##\n" + "\n".join(experience_buffer))
-    if education_buffer and "Education" not in added_sections:
+    if education_buffer:
         formatted_resume.append("\n## Education ##\n" + "\n".join(education_buffer))
 
     return "\n".join(formatted_resume)
