@@ -528,6 +528,14 @@ def create_personal_assistant():
 
 # Streamlit UI
 def main():
+    # Set the page configuration
+    st.set_page_config(
+        page_title="HowToCem",
+        page_icon="😎",
+        layout="centered",  # Can be "centered" or "wide"
+        initial_sidebar_state="expanded",  # Can be "auto", "expanded", or "collapsed"
+    )
+
     st.title("HowToCem")
     st.write("👋 Hi! I'm Cem Kaspi's virtual assistant. Ask me anything about his resume, personal info, career, or music taste!")
     
