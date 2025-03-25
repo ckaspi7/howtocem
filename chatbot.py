@@ -631,14 +631,7 @@ def main():
     # Display chat messages
     for message in st.session_state.messages:
         with st.chat_message(message["role"], avatar=get_avatar(message["role"])):
-             # For user messages, add custom styling
-            if message["role"] == "human":
-                st.markdown(
-                    f'<div style="display: flex; align-items: center; background-color: #e7d8c9; padding: 10px; border-radius: 8px; margin-left: -50px; padding-left: 50px;">{message["content"]}</div>', 
-                    unsafe_allow_html=True
-                )
-            else:
-                st.markdown(message["content"])
+            st.markdown(message["content"])
     
     # Get user input
     if prompt := st.chat_input("Ask me something about Cem..."):
